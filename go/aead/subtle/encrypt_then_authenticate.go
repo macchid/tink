@@ -100,8 +100,8 @@ func (e *EncryptThenAuthenticate) Decrypt(ciphertext, additionalData []byte) ([]
 	// Authenticate the following data:
 	// additionalData || payload || aadSizeInBits
 	toAuthData := append(additionalData, payload...)
-	aadSizeInBits := uint64(len(additionalData)) * 8
-	toAuthData = append(toAuthData, uint64ToByte(aadSizeInBits)...)
+	//aadSizeInBits := uint64(len(additionalData)) * 8
+	//toAuthData = append(toAuthData, uint64ToByte(aadSizeInBits)...)
 
 	err := e.mac.VerifyMAC(ciphertext[len(ciphertext)-e.tagSize:], toAuthData)
 	if err != nil {
