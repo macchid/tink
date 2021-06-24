@@ -16,7 +16,11 @@
 
 package subtle
 
-import "github.com/google/tink/go/subtle"
+import (
+	"fmt"
+
+	"github.com/google/tink/go/subtle"
+)
 
 // ECIESHKDFRecipientKem represents a HKDF-based KEM (key encapsulation mechanism)
 // for ECIES recipient.
@@ -26,15 +30,26 @@ type ECIESHKDFRecipientKem struct {
 
 // decapsulate uses the KEM to generate a new HKDF-based key.
 func (s *ECIESHKDFRecipientKem) decapsulate(kem []byte, hashAlg string, salt []byte, info []byte, keySize uint32, pointFormat string) ([]byte, error) {
+
+	fmt.Println("Received KEM", kem)
+
 	pubPoint, err := PointDecode(s.recipientPrivateKey.PublicKey.Curve, pointFormat, kem)
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println("pubPoint.X", pubPoint.X.Bytes())
+	fmt.Println("pubPoint.Y", pubPoint.Y.Bytes())
+
 	secret, err := ComputeSharedSecret(pubPoint, s.recipientPrivateKey)
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println("SharedSecret", secret)
 	i := append(kem, secret...)
+
+	fmt.Println("ComputeHKDF.input", i)
 
 	return subtle.ComputeHKDF(hashAlg, i, salt, info, keySize)
 }

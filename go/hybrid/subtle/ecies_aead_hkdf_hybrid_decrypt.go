@@ -18,6 +18,7 @@ package subtle
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/google/tink/go/tink"
 )
@@ -46,6 +47,9 @@ func NewECIESAEADHKDFHybridDecrypt(pvt *ECPrivateKey, hkdfSalt []byte, hkdfHMACA
 
 // Decrypt is used to decrypt using ECIES with a HKDF-KEM and AEAD-DEM mechanisms.
 func (e *ECIESAEADHKDFHybridDecrypt) Decrypt(ciphertext, contextInfo []byte) ([]byte, error) {
+	fmt.Println("cipherText", ciphertext)
+	fmt.Println("contextInfo", contextInfo)
+
 	curve := e.privateKey.PublicKey.Curve
 	headerSize, err := encodingSizeInBytes(curve, e.pointFormat)
 	if err != nil {
@@ -54,10 +58,17 @@ func (e *ECIESAEADHKDFHybridDecrypt) Decrypt(ciphertext, contextInfo []byte) ([]
 	if len(ciphertext) < headerSize {
 		return nil, errors.New("ciphertext too short")
 	}
+
+	fmt.Println("headerSize", headerSize)
+
 	var kemBytes = make([]byte, headerSize)
 	var ct = make([]byte, len(ciphertext)-headerSize)
 	copy(kemBytes, ciphertext[:headerSize])
 	copy(ct, ciphertext[headerSize:])
+
+	fmt.Println("kem", kemBytes)
+	fmt.Println("ct", ct)
+
 	rKem := &ECIESHKDFRecipientKem{
 		recipientPrivateKey: e.privateKey,
 	}
@@ -65,6 +76,9 @@ func (e *ECIESAEADHKDFHybridDecrypt) Decrypt(ciphertext, contextInfo []byte) ([]
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println("Symmetric Key", symmetricKey)
+
 	prim, err := e.demHelper.GetAEADOrDAEAD(symmetricKey)
 	if err != nil {
 		return nil, err
